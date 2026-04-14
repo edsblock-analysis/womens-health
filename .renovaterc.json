@@ -1,16 +1,4 @@
 {
-  "extends": ["config:recommended"],
-  "packageRules": [
-    {
-      "matchDepTypes": ["devDependencies"],
-      "labels": ["ignore-psi-check"],
-      "automerge": true,
-      "ignoreTests": false
-    },
-    {
-      "matchPackageNames": ["eslint"],
-      "allowedVersions": "^8.0.0",
-      "description": "Pin ESLint to v8 until airbnb-base supports v9+"
-    }
-  ]
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"]
 }
