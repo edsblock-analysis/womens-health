@@ -1,0 +1,7 @@
+/* template: patient (layer: template) */
+.page--patient .layout-main {
+  background: linear-gradient(180deg, var(--color-surface, #fff) 0%, var(--color-mute, #f8f8f8) 100%);
+}
+.page--patient .layout-header {
+  background: var(--color-surface, #fff);
+}

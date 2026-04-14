@@ -1,0 +1,10 @@
+{
+  "name": "@abbvie/eds-blocks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared Franklin blocks for all family apps",
+  "scripts": {
+    "build": "node -e \"process.exit(0)\""
+  }
+}

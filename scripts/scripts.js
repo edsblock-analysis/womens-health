@@ -10,7 +10,49 @@ import {
   loadSection,
   loadSections,
   loadCSS,
+  getMetadata,
+  toClassName,
 } from './aem.js';
+
+/** Cached result of {@link getSiteId}; `null` means resolved-missing. */
+let cachedSiteId;
+
+/**
+ * Microsite folder under `styles/<id>/` from `<meta name="site" content="linzess">`
+ * or an `html` class `site--linzess`.
+ * @returns {string|null}
+ */
+function getSiteId() {
+  if (cachedSiteId !== undefined) return cachedSiteId;
+  const raw = getMetadata('site').trim();
+  let id = raw ? toClassName(raw.split(',')[0].trim()) : '';
+  if (!id) {
+    const m = document.documentElement.className.match(/\bsite--([a-z0-9-]+)\b/);
+    if (m) [, id] = m;
+  }
+  if (!id) {
+    // eslint-disable-next-line no-console
+    console.warn('[scripts] Missing <meta name="site"> (or site--* on <html>); per-site CSS is skipped.');
+  }
+  cachedSiteId = id || null;
+  return cachedSiteId;
+}
+
+/**
+ * Eager: `styles/<site>/styles.css` and optional `styles/<site>/templates/<template>.css`
+ * from `<meta name="template" content="patient">`.
+ */
+async function loadSiteStyles() {
+  const siteId = getSiteId();
+  if (!siteId) return;
+  const b = window.hlx.codeBasePath;
+  await loadCSS(`${b}/styles/${siteId}/styles.css`);
+  const tplRaw = getMetadata('template').trim();
+  if (tplRaw) {
+    const tpl = toClassName(tplRaw.split(',')[0].trim());
+    if (tpl) await loadCSS(`${b}/styles/${siteId}/templates/${tpl}.css`);
+  }
+}
 
 /**
  * Builds hero block and prepends to main in a new section.
@@ -35,7 +77,9 @@ function buildHeroBlock(main) {
  * load fonts.css and set a session storage flag
  */
 async function loadFonts() {
-  await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
+  const siteId = getSiteId();
+  if (!siteId) return;
+  await loadCSS(`${window.hlx.codeBasePath}/styles/${siteId}/fonts.css`);
   try {
     if (!window.location.hostname.includes('localhost')) sessionStorage.setItem('fonts-loaded', 'true');
   } catch (e) {
@@ -133,6 +177,7 @@ export function decorateMain(main) {
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
   decorateTemplateAndTheme();
+  await loadSiteStyles();
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
@@ -166,7 +211,10 @@ async function loadLazy(doc) {
 
   loadFooter(doc.querySelector('footer'));
 
-  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  const siteId = getSiteId();
+  if (siteId) {
+    loadCSS(`${window.hlx.codeBasePath}/styles/${siteId}/lazy-styles.css`);
+  }
   loadFonts();
 }
 
